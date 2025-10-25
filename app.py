@@ -8,6 +8,57 @@ app = Flask(__name__)
 # Load .env file if present so local OPENAI_API_KEY is available during development
 load_dotenv()
 
+
+class AzureFoundryClient:
+    """A small client to call Azure Foundry / Azure OpenAI deployment endpoints.
+
+    It builds the deployments endpoint if provided a base URL and handles requests and basic parsing.
+    """
+
+    def __init__(self, endpoint: str = None, api_key: str = None, deployment: str = None, api_version: str = None):
+        self.endpoint = endpoint or os.environ.get("AZURE_FOUNDRY_MODEL_ENDPOINT")
+        self.api_key = api_key or os.environ.get("AZURE_FOUNDRY_MODEL_API_KEY")
+        self.deployment = deployment or os.environ.get("AZURE_FOUNDRY_MODEL_DEPLOYMENT")
+        self.api_version = api_version or os.environ.get("AZURE_FOUNDRY_MODEL_API_VERSION", "2025-01-01-preview")
+
+    def build_endpoint(self) -> str:
+        if not self.endpoint:
+            raise ValueError("AZURE_FOUNDRY_MODEL_ENDPOINT is not set")
+        if "/deployments/" in self.endpoint:
+            return self.endpoint
+        if not self.deployment:
+            raise ValueError("AZURE_FOUNDRY_MODEL_DEPLOYMENT is required when endpoint is a base URL")
+        return self.endpoint.rstrip('/') + f"/openai/deployments/{self.deployment}/chat/completions?api-version={self.api_version}"
+
+    def call(self, prompt: str, max_tokens: int = 150, temperature: float = 0.7) -> str:
+        if not (self.endpoint and self.api_key):
+            raise ValueError("Azure endpoint or API key not configured")
+
+        endpoint = self.build_endpoint()
+        headers = {"api-key": self.api_key, "Content-Type": "application/json"}
+        payload = {
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        }
+
+        resp = requests.post(endpoint, headers=headers, json=payload, timeout=30)
+        if not resp.ok:
+            body = resp.text or ""
+            snippet = body[:500].replace('\n', ' ')
+            raise RuntimeError(f"Azure Foundry request failed (status={resp.status_code}): {snippet}")
+
+        try:
+            data = resp.json()
+        except Exception as e:
+            raise RuntimeError("Azure Foundry returned non-JSON response") from e
+
+        try:
+            return data.get("choices", [])[0].get("message", {}).get("content", "")
+        except Exception:
+            raise RuntimeError("Azure Foundry response did not contain assistant content")
+
+
 PROFILE = {
     "name": "Alex Doe",
     "title": "Software Engineer",
@@ -43,40 +94,13 @@ def call_Azure_openai_api(prompt: str) -> str:
         "temperature": 0.7,
     }
 
-    # If Azure Foundry details are present, call that endpoint
+    # If Azure Foundry details are present, call via the object-oriented client
     if azure_endpoint and azure_key:
-        azure_deployment = os.environ.get("AZURE_FOUNDRY_MODEL_DEPLOYMENT")
-        azure_api_version = os.environ.get("AZURE_FOUNDRY_MODEL_API_VERSION", "2025-01-01-preview")
-
-        endpoint = azure_endpoint
-        if "/deployments/" not in azure_endpoint:
-            if not azure_deployment:
-                return "AZURE_FOUNDRY_MODEL_ENDPOINT looks like a base URL; please set AZURE_FOUNDRY_MODEL_DEPLOYMENT to build the full endpoint."
-            endpoint = azure_endpoint.rstrip('/') + f"/openai/deployments/{azure_deployment}/chat/completions?api-version={azure_api_version}"
-
-        headers = {"api-key": azure_key, "Content-Type": "application/json"}
-        azure_payload = payload.copy()
         try:
-            resp = requests.post(endpoint, headers=headers, json=azure_payload, timeout=30)
+            client = AzureFoundryClient(endpoint=azure_endpoint, api_key=azure_key)
+            return client.call(prompt)
         except Exception as e:
-            return f"Failed to reach Azure Foundry endpoint: {str(e)}"
-
-        # If non-2xx, return an informative message with a snippet of the body
-        if not resp.ok:
-            body = resp.text or ""
-            snippet = body[:500].replace('\n', ' ')
-            return f"Azure Foundry request failed (status={resp.status_code}): {snippet}"
-
-        try:
-            data = resp.json()
-        except Exception:
-            return "Azure Foundry returned non-JSON response"
-
-        # Extract assistant message
-        try:
-            return data.get("choices", [])[0].get("message", {}).get("content", "")
-        except Exception:
-            return "Azure Foundry response did not contain assistant content"
+            return f"Failed to fetch response from Azure Foundry model: {str(e)}"
 
     # Fallback to OpenAI (public API) if OPENAI_API_KEY is present
     if openai_key:
