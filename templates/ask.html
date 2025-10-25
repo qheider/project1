@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ask AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <div class="card">
+      <h1>Ask AI</h1>
+      <form method="post">
+        <textarea name="question" rows="4" style="width:100%" placeholder="Ask something..."></textarea>
+        <div style="margin-top:8px">
+          <button type="submit">Ask</button>
+        </div>
+      </form>
+
+      {% if answer is not none %}
+      <h3>Answer</h3>
+      <div class="bio">{{ answer }}</div>
+      {% endif %}
+
+      <p style="margin-top:12px;color:#6b7280;font-size:0.9em">Note: This demo expects OPENAI_API_KEY in environment to fetch real answers.</p>
+    </div>
+  </body>
+</html>
