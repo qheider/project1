@@ -3,7 +3,7 @@ from openai import AzureOpenAI
 ## load dotenv if needed
 from dotenv import load_dotenv
 
-
+#this is a test run
 endpoint = "https://qheid-mgueq40v-eastus2.cognitiveservices.azure.com/"
 model_name = "gpt-4.1-nano"
 deployment = "gpt-4.1-nano"
