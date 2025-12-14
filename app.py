@@ -60,12 +60,12 @@ class AzureFoundryClient:
 
 
 PROFILE = {
-    "name": "Alex Doe",
+    "name": "Quazi Heider",
     "title": "Software Engineer",
     "bio": "Passionate developer with experience in web and backend systems.",
-    "email": "alex.doe@example.com",
-    "location": "San Francisco, CA",
-    "skills": ["Python", "Flask", "Docker", "Postgres"]
+    "email": "qheider@gmail.com",
+    "location": "Toronto, Canada",
+    "skills": ["Python", "Flask", "Java", "LLM"]
 }
 
 
