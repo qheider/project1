@@ -12,7 +12,7 @@
       <form method="post">
         <textarea name="question" rows="4" style="width:100%" placeholder="Ask something..."></textarea>
         <div style="margin-top:8px">
-          <button type="submit">Ask</button>
+          <button type="submit">Ask</button> <a class="ask-link" href="{{ url_for('index') }}">home</a>
         </div>
       </form>
 
@@ -23,5 +23,5 @@
 
       <p style="margin-top:12px;color:#6b7280;font-size:0.9em">Note: This demo expects OPENAI_API_KEY in environment to fetch real answers.</p>
     </div>
-  </body>
+      </body>
 </html>
