@@ -2,3 +2,6 @@ Flask>=2.0
 pytest
 requests
 python-dotenv
+azure-search-documents 
+azure-identity
+openai
