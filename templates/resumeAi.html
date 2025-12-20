@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Resume AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <div class="card">
+      <h1>Resume AI</h1>
+      <form method="post">
+        <textarea name="question" rows="4" style="width:100%" placeholder="Ask something about my resume..."></textarea>
+        <div style="margin-top:8px">
+          <button type="submit">Ask</button> <a class="ask-link" href="{{ url_for('index') }}">home</a>
+        </div>
+      </form>
+
+      {% if answer is not none %}
+      <h3>Answer</h3>
+      <div class="bio">{{ answer }}</div>
+      {% endif %}
+
+      <p style="margin-top:12px;color:#6b7280;font-size:0.9em">Note: This uses Azure AI Search to answer questions based on resume documents.</p>
+    </div>
+      </body>
+</html>
