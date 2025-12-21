@@ -126,7 +126,7 @@ class AzureSearchRAGClient:
         search_results = self.search_client.search(search_text=query, top=top)
         return [result for result in search_results]
 
-    def generate_answer(self, query: str, top: int = 3) -> Dict[str, any]:
+    def generate_answer(self, query: str, top: int = 3) -> str:
         """
         Generate grounded AI answer using RAG (Retrieval-Augmented Generation).
         
@@ -187,7 +187,7 @@ class AzureSearchRAGClient:
     "preceding the source content.\n"
     "- Place citations at the end of the sentence they support.\n\n"
     "Formatting guidelines:\n"
-    "- Use Markdown for all responses.\n"
+    "- Use Markdown format for all responses.\n"
     "- Structure answers clearly using paragraphs or bullet points when appropriate.\n"
     "- Do not include citations in headings or titles."
 )
@@ -206,7 +206,7 @@ class AzureSearchRAGClient:
         
         return {
             "answer": response.choices[0].message.content,
-            "citations": citations
+            # "citations": citations
         }
 
 def call_Rag_api(prompt: str) -> str:
