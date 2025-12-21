@@ -2,12 +2,29 @@ from flask import Flask, render_template, url_for, request, jsonify
 from dotenv import load_dotenv
 from call_Azure_endpoints import call_Azure_openai_api
 from azure_search_client import call_Rag_api
+from resume_rag_ollama_oop import ResumeRAG
 
 
 app = Flask(__name__)
 
 # Load .env file if present so local OPENAI_API_KEY is available during development
 load_dotenv()
+
+# Initialize Ollama RAG system
+ollama_rag = None
+
+def get_ollama_rag():
+    """Lazy initialization of Ollama RAG system."""
+    global ollama_rag
+    if ollama_rag is None:
+        ollama_rag = ResumeRAG(
+            pdf_path="C:/resume/resume.pdf",
+            chat_model="gpt-oss:20b",
+            embedding_model="nomic-embed-text"
+        )
+        ollama_rag.load_and_process_document()
+        ollama_rag.setup_qa_chain()
+    return ollama_rag
 
 
 PROFILE = {
@@ -49,6 +66,23 @@ def resume_ai():
             answer = 'Please enter a question.'
 
     return render_template('resumeAi.html', answer=answer)
+
+
+@app.route('/resume-ai-ollama', methods=['GET', 'POST'])
+def resume_ai_ollama():
+    answer = None
+    if request.method == 'POST':
+        question = request.form.get('question', '').strip()
+        if question:
+            try:
+                rag = get_ollama_rag()
+                answer = rag.query(question)
+            except Exception as e:
+                answer = f'Error: {str(e)}'
+        else:
+            answer = 'Please enter a question.'
+
+    return render_template('resumeAi-Ollama.html', answer=answer)
 
 
 if __name__ == "__main__":
