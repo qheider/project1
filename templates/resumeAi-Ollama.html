@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ask AI</title>
+    <title>Resume AI - Ollama</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   </head>
   <body>
     <div class="card">
-      <h1>Ask AI</h1>
+      <h1>Resume AI - Ollama</h1>
       <form method="post">
-        <textarea name="question" rows="4" style="width:100%" placeholder="Ask something..."></textarea>
+        <textarea name="question" rows="4" style="width:100%" placeholder="Ask something about my resume..."></textarea>
         <div style="margin-top:8px">
           <button class="ask-link" type="submit">Ask</button> <a class="ask-link" href="{{ url_for('index') }}">home</a>
         </div>
@@ -21,7 +21,7 @@
       <div class="bio">{{ answer }}</div>
       {% endif %}
 
-      <p style="margin-top:12px;color:#6b7280;font-size:0.9em">Note: This demo expects OPENAI_API_KEY in environment to fetch real answers.</p>
+      <p style="margin-top:12px;color:#6b7280;font-size:0.9em">Note: This uses Ollama with local LLM to answer questions based on resume documents.</p>
     </div>
       </body>
 </html>

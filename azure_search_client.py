@@ -126,7 +126,7 @@ class AzureSearchRAGClient:
         search_results = self.search_client.search(search_text=query, top=top)
         return [result for result in search_results]
 
-    def generate_answer(self, query: str, top: int = 3) -> Dict[str, any]:
+    def generate_answer(self, query: str, top: int = 3) -> str:
         """
         Generate grounded AI answer using RAG (Retrieval-Augmented Generation).
         
@@ -165,13 +165,33 @@ class AzureSearchRAGClient:
         context = "\n\n".join(context_chunks)
         
         # 3. GENERATE: Get AI response grounded in context
+        # system_prompt = (
+        #     "You are an AI assistant who answers questions based **ONLY** on the "
+        #     "provided context snippets. If the answer cannot be found in the context, "
+        #     "state clearly that the information is not available in the provided sources. "
+        #     "Cite your sources using the format [Source N] at the end of the sentence "
+        #     "where N is the number preceding the source content."
+        # )
+
         system_prompt = (
-            "You are an AI assistant who answers questions based **ONLY** on the "
-            "provided context snippets. If the answer cannot be found in the context, "
-            "state clearly that the information is not available in the provided sources. "
-            "Cite your sources using the format [Source N] at the end of the sentence "
-            "where N is the number preceding the source content."
-        )
+    "You are an AI assistant who answers questions **only** using the information "
+    "contained in the provided context snippets.\n\n"
+    "Rules you must follow:\n"
+    "- Use **only** the provided context to generate answers.\n"
+    "- Do not rely on prior knowledge, assumptions, or external sources.\n"
+    "- If the answer cannot be found in the provided context, clearly state:\n"
+    "  \"The information is not available in the provided sources.\"\n\n"
+    "Citation requirements:\n"
+    "- Every factual statement must be supported by a citation.\n"
+    "- Cite sources using the format [Source N], where N corresponds to the number "
+    "preceding the source content.\n"
+    "- Place citations at the end of the sentence they support.\n\n"
+    "Formatting guidelines:\n"
+    "- Use Markdown format for all responses.\n"
+    "- Structure answers clearly using paragraphs or bullet points when appropriate.\n"
+    "- Do not include citations in headings or titles."
+)
+
         
         user_prompt = f"Context: {context}\n\nQuestion: {query}"
         
@@ -186,7 +206,7 @@ class AzureSearchRAGClient:
         
         return {
             "answer": response.choices[0].message.content,
-            "citations": citations
+            # "citations": citations
         }
 
 def call_Rag_api(prompt: str) -> str:

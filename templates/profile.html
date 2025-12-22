@@ -8,7 +8,7 @@
   </head>
   <body>
     <div class="card">
-      <img class="avatar" src="https://www.gravatar.com/avatar/?d=mp&s=120" alt="avatar">
+      <img class="avatar" src="https://media.licdn.com/dms/image/v2/D5603AQG24FwFRspMfw/profile-displayphoto-scale_400_400/B56ZooiYl1KAAg-/0/1761616695118?e=1767830400&v=beta&t=wnLzbEDHIephUpVsdC_MPY9NBuq9UNF9hE7RwMRvzvE" alt="avatar">
       <h1>{{ profile.name }}</h1>
       <h2>{{ profile.title }}</h2>
       <p class="bio">{{ profile.bio }}</p>
@@ -26,7 +26,8 @@
       </ul>
       <div style="margin-top:14px; text-align:center">
         <a class="ask-link" href="{{ url_for('ask') }}">Ask AI a question</a> | 
-        <a class="ask-link" href="{{ url_for('resume_ai') }}">Ask about Resume</a>
+        <a class="ask-link" href="{{ url_for('resume_ai') }}">Ask about Resume (Azure)</a> |
+        <a class="ask-link" href="{{ url_for('resume_ai_ollama') }}">Ask about Resume (Ollama)</a>
       </div>
     </div>
   </body>
