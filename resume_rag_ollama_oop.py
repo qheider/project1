@@ -16,6 +16,7 @@ class ResumeRAG:
     def __init__(
         self,
         pdf_path: str,
+        persist_directory: str = "faiss_index",
         chat_model: str = "gpt-oss:20b",
         embedding_model: str = "nomic-embed-text",
         chunk_size: int = 500,
@@ -34,11 +35,13 @@ class ResumeRAG:
             temperature: LLM temperature (0 for deterministic)
         """
         self.pdf_path = pdf_path
+        self.persist_directory = persist_directory
         self.chat_model = chat_model
         self.embedding_model = embedding_model
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.temperature = temperature
+        self.embeddings = OllamaEmbeddings(model=self.embedding_model)
         
         self.vectorstore = None
         self.qa_chain = None
@@ -46,20 +49,35 @@ class ResumeRAG:
     def load_and_process_document(self) -> None:
         """Load PDF and create vector store with embeddings."""
         print("Loading PDF...")
-        loader = PyPDFLoader(self.pdf_path)
-        docs = loader.load()
+
+        index_path = os.path.join(self.persist_directory, "index.faiss")
+        if os.path.exists(index_path):
+            print(f"Loading existing index from {self.persist_directory}...")
+            self.vectorstore = FAISS.load_local(
+                self.persist_directory, 
+                self.embeddings,
+                allow_dangerous_deserialization=True
+            )
+        else:
+            print("No existing index found. Processing PDF...")
+            if not os.path.exists(self.pdf_path):
+                raise FileNotFoundError(f"PDF not found at {self.pdf_path}")
+            loader = PyPDFLoader(self.pdf_path)
+            docs = loader.load()
         
-        # Split documents into chunks
-        text_splitter = RecursiveCharacterTextSplitter(
+            # Split documents into chunks
+            text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap
-        )
-        splits = text_splitter.split_documents(docs)
+            )
+            splits = text_splitter.split_documents(docs)
         
-        # Create embeddings and vector store
-        print("Creating embeddings...")
-        embeddings = OllamaEmbeddings(model=self.embedding_model)
-        self.vectorstore = FAISS.from_documents(documents=splits, embedding=embeddings)
+           
+            self.vectorstore = FAISS.from_documents(documents=splits, embedding=self.embeddings)
+            # Save the index to the local directory
+            os.makedirs(self.persist_directory, exist_ok=True)
+            self.vectorstore.save_local(self.persist_directory)
+            print(f"Index saved to {self.persist_directory}")
         
     def setup_qa_chain(self) -> None:
         """Configure the RAG QA chain with LLM and prompt."""
@@ -141,12 +159,14 @@ def main():
     pdf_path = "C:/resume/resume.pdf"
     chat_model_name = "gpt-oss:20b"
     embedding_model_name = "nomic-embed-text"
+    persist_dir = "C:/resume/faiss_db" # Directory to store index files
     
     # Initialize RAG system
     rag_system = ResumeRAG(
         pdf_path=pdf_path,
         chat_model=chat_model_name,
-        embedding_model=embedding_model_name
+        embedding_model=embedding_model_name,
+        persist_directory=persist_dir
     )
     
     # Load document and setup
